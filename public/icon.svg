@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ESP32 IoT">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <rect x="156" y="156" width="200" height="200" rx="28" fill="#e0f2fe"/>
+    <rect x="204" y="204" width="104" height="104" rx="18" fill="#0f172a"/>
+    <path d="M96 184h60M96 232h60M96 280h60M96 328h60M356 184h60M356 232h60M356 280h60M356 328h60M184 96v60M232 96v60M280 96v60M328 96v60M184 356v60M232 356v60M280 356v60M328 356v60" stroke="#a3e635" stroke-width="22"/>
+    <path d="M333 120c42-35 89-35 131 0M362 153c24-20 49-20 73 0" fill="none" stroke="#67e8f9" stroke-width="20"/>
+    <circle cx="256" cy="256" r="30" fill="#22d3ee"/>
+  </g>
+</svg>
