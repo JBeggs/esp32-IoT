@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ecommerceApi, newsApi } from '@/lib/api'
 import { Order, IntegrationSettings, IntegrationSettingsUpdatePayload } from '@/lib/types'
 import { useToast } from '@/contexts/ToastContext'
-import { Package, User, Mail, Calendar, MapPin, ChevronRight, Loader2, Save, Building2, Clock, Settings, CreditCard, Truck, Eye, EyeOff, UserCircle, ShoppingBag, Globe, Zap } from 'lucide-react'
+import { Package, User, Calendar, MapPin, ChevronRight, Loader2, Save, Building2, Clock, Settings, CreditCard, Truck, Eye, EyeOff, UserCircle, ShoppingBag, Globe, Zap } from 'lucide-react'
 import Link from 'next/link'
 
 const MASK_PREFIX = '•'
@@ -56,6 +56,8 @@ export default function ProfilePage() {
   const [company, setCompany] = useState<Record<string, any> | null>(null)
   const [companyForm, setCompanyForm] = useState({
     logo: '',
+    name: '',
+    email: '',
     phone: '',
     website: '',
     address_street: '',
@@ -93,6 +95,7 @@ export default function ProfilePage() {
   }, [])
 
   const [formData, setFormData] = useState({
+    email: '',
     first_name: '',
     last_name: '',
     phone: '',
@@ -136,6 +139,7 @@ export default function ProfilePage() {
       const social = profile?.social_links || {}
       const prefs = profile?.preferences || {}
       setFormData({
+        email: ((profile as any)?.email ?? user?.email ?? '') as string,
         first_name: (profile as any)?.first_name || first,
         last_name: (profile as any)?.last_name || last,
         phone: (profile as any)?.phone || '',
@@ -201,6 +205,8 @@ export default function ProfilePage() {
         setCompany(c)
         setCompanyForm({
           logo: c?.logo?.file_url || c?.logo_url || '',
+          name: c?.name || '',
+          email: c?.email || '',
           phone: c?.phone || '',
           website: c?.website || '',
           address_street: c?.address_street || '',
@@ -259,6 +265,7 @@ export default function ProfilePage() {
         full_name: fullName || undefined,
         first_name: formData.first_name || undefined,
         last_name: formData.last_name || undefined,
+        email: formData.email.trim(),
         phone: formData.phone || undefined,
         bio: formData.bio || undefined,
         avatar_url: formData.avatar_url || undefined,
@@ -280,6 +287,8 @@ export default function ProfilePage() {
     setUpdatingCompany(true)
     try {
       const updated = await ecommerceApi.companies.update(companyId, {
+        name: companyForm.name.trim(),
+        email: companyForm.email.trim(),
         phone: companyForm.phone || '',
         website: companyForm.website || '',
         address_street: companyForm.address_street || '',
@@ -308,7 +317,11 @@ export default function ProfilePage() {
           return parsed
         })(),
       })
-      setCompany((updated as any)?.data ?? (updated as Record<string, any>))
+      const data = (updated as any)?.data ?? updated
+      setCompany(data)
+      if (data && typeof (data as any).name === 'string') {
+        setCompanyForm((f) => ({ ...f, name: (data as any).name }))
+      }
       showSuccess('Business profile updated')
     } catch (error: any) {
       showError(error.message || 'Failed to update business profile')
@@ -334,6 +347,7 @@ export default function ProfilePage() {
           full_name: fullName || undefined,
           first_name: formData.first_name || undefined,
           last_name: formData.last_name || undefined,
+          email: formData.email.trim(),
           phone: formData.phone || undefined,
           bio: formData.bio || undefined,
           avatar_url: url,
@@ -485,7 +499,7 @@ export default function ProfilePage() {
             <h1 className="text-xl font-bold text-text">
               {[formData.first_name, formData.last_name].filter(Boolean).join(' ') || profile?.full_name || user.email?.split('@')[0] || 'User'}
             </h1>
-            <p className="text-sm text-text-muted">{user.email}</p>
+            <p className="text-sm text-text-muted">{formData.email || user.email}</p>
             <p className="text-xs text-text-muted mt-0.5">Click photo to upload</p>
           </div>
         </div>
@@ -546,6 +560,19 @@ export default function ProfilePage() {
                       required
                     />
                     <p className="text-xs text-text-muted">Required for delivery</p>
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Account email</label>
+                    <input
+                      type="email"
+                      autoComplete="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="form-input"
+                      placeholder="you@example.com"
+                      required
+                    />
+                    <p className="text-xs text-text-muted">Login and notifications — separate from storefront business email</p>
                   </div>
                 </div>
                 <div className="space-y-1">
@@ -637,10 +664,6 @@ export default function ProfilePage() {
 
               <div className="mt-8 pt-6 border-t border-gray-100 space-y-4">
                 <div className="flex items-center gap-3 text-sm text-text-light">
-                  <Mail className="w-4 h-4" />
-                  <span>{user.email}</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-text-light">
                   <Calendar className="w-4 h-4" />
                   <span>Joined {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '—'}</span>
                 </div>
@@ -712,6 +735,18 @@ export default function ProfilePage() {
               </h3>
               <form onSubmit={handleUpdateCompany} className="space-y-4">
                       <div className="space-y-1">
+                        <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Company Name</label>
+                        <input
+                          type="text"
+                          value={companyForm.name}
+                          onChange={(e) => setCompanyForm({ ...companyForm, name: e.target.value })}
+                          className="form-input"
+                          placeholder="Your store name"
+                          required
+                        />
+                        <p className="text-xs text-text-muted">Shown in the website header, footer, browser metadata, and fallback logo monogram.</p>
+                      </div>
+                      <div className="space-y-1">
                         <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Company Logo</label>
                         <div className="flex flex-wrap items-center gap-4">
                           {companyForm.logo && (
@@ -733,6 +768,19 @@ export default function ProfilePage() {
                           )}
                         </div>
                         <p className="text-xs text-text-muted mt-1">Click to upload an image</p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Contact email</label>
+                        <input
+                          type="email"
+                          autoComplete="email"
+                          value={companyForm.email}
+                          onChange={(e) => setCompanyForm({ ...companyForm, email: e.target.value })}
+                          className="form-input"
+                          placeholder="hello@yourstore.com"
+                          required
+                        />
+                        <p className="text-xs text-text-muted">Public storefront contact — separate from your account/login email</p>
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Phone</label>
