@@ -171,6 +171,12 @@ export default function LoginPage() {
                 Email verification is required. Check your inbox and spam folder for our link before signing in.
               </p>
               <div className="flex flex-wrap gap-2">
+                <Link
+                  href={`/auth/verify-email?email=${encodeURIComponent(username.trim())}`}
+                  className="btn btn-secondary text-sm py-2"
+                >
+                  Open verification help
+                </Link>
                 <button
                   type="button"
                   disabled={resendBusy}
