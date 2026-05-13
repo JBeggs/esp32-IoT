@@ -19,15 +19,39 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const returnUrl = searchParams.get('return') || '/'
 
+  const [needsVerifyHint, setNeedsVerifyHint] = useState(false)
+  const [resendBusy, setResendBusy] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setNeedsVerifyHint(false)
 
     try {
-      const { error } = await signIn(username, password)
-      
+      const {
+        error,
+        code,
+        verificationEmailSent,
+        verificationEmailCooldown,
+      } = await signIn(username, password)
+
       if (error) {
-        showError(error)
+        if (code === 'email_not_verified') {
+          const base =
+            'Your account is not verified yet. Please check your email (including spam or junk) for a message with a verification link. Open that link, then return here to sign in.'
+          let detail = base
+          if (verificationEmailSent) {
+            detail +=
+              ' We have sent another verification email—please look for it in your inbox.'
+          } else if (verificationEmailCooldown) {
+            detail +=
+              ' A verification email was already sent recently (within 24 hours). Check your existing messages for the link, or use “Resend email” below if you still cannot find it.'
+          }
+          showError(detail)
+          setNeedsVerifyHint(true)
+        } else {
+          showError(typeof error === 'string' ? error : 'Login failed')
+        }
       } else {
         showSuccess('Login successful! Syncing your cart...')
         try {
@@ -61,7 +85,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="username" className="block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted">
-                Username
+                Username or email
               </label>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none transition-colors group-focus-within:text-vintage-primary z-20">
@@ -74,7 +98,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-md hover:border-vintage-primary/50 transition-all focus:bg-white focus:ring-4 focus:ring-vintage-primary/10 focus:outline-none focus:border-transparent relative z-10"
-                  placeholder="Enter your username"
+                  placeholder="Username or email"
                   required
                 />
               </div>
@@ -140,6 +164,37 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+
+          {needsVerifyHint ? (
+            <div className="mt-6 p-4 rounded-lg bg-amber-50 border border-amber-200 text-sm space-y-3">
+              <p className="text-text font-medium">
+                Email verification is required. Check your inbox and spam folder for our link before signing in.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={resendBusy}
+                  onClick={async () => {
+                    try {
+                      setResendBusy(true)
+                      const { authApi } = await import('@/lib/api')
+                      await authApi.resendVerificationEmail(username.trim())
+                      showSuccess(
+                        'If your account exists and still needs verification, we sent another email.',
+                      )
+                    } catch {
+                      showError('Could not resend. Try again shortly.')
+                    } finally {
+                      setResendBusy(false)
+                    }
+                  }}
+                  className="btn btn-primary text-sm py-2"
+                >
+                  {resendBusy ? 'Sending…' : 'Resend email'}
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-10 pt-8 border-t border-gray-100 text-center">
             <p className="paper-muted">

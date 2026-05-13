@@ -555,6 +555,14 @@ export const authApi = {
     apiClient.setRefreshToken(null)
     apiClient.setCompanyId(null)
   },
+
+  async resendVerificationEmail(email: string) {
+    return apiClient.post<{ detail: string }>(
+      '/auth/resend-verification/',
+      { email: email.trim().toLowerCase() },
+      false,
+    )
+  },
 }
 
 // News/Articles API methods
