@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/contexts/ToastContext'
+import { authApi } from '@/lib/api'
 import { Lock, User, ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
@@ -22,10 +23,27 @@ export default function LoginPage() {
   const [needsVerifyHint, setNeedsVerifyHint] = useState(false)
   const [needsPhoneVerifyHint, setNeedsPhoneVerifyHint] = useState(false)
   const [resendBusy, setResendBusy] = useState(false)
+  const [loginError, setLoginError] = useState('')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('company_id')
+      document.cookie = 'auth_token=; path=/; max-age=0'
+      document.cookie = 'refresh_token=; path=/; max-age=0'
+      document.cookie = 'company_id=; path=/; max-age=0'
+      authApi.logout()
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setLoginError('')
     setNeedsVerifyHint(false)
     setNeedsPhoneVerifyHint(false)
 
@@ -49,6 +67,7 @@ export default function LoginPage() {
             detail +=
               ' A verification email was already sent recently (within 24 hours). Check your existing messages for the link, or use “Resend email” below if you still cannot find it.'
           }
+          setLoginError(detail)
           showError(detail)
           setNeedsVerifyHint(true)
         } else if (code === 'phone_not_verified') {
@@ -56,10 +75,13 @@ export default function LoginPage() {
             typeof error === 'string' && error.trim()
               ? error
               : 'Your cellphone number must be verified before you can sign in. Open your profile to complete verification.'
+          setLoginError(detail)
           showError(detail)
           setNeedsPhoneVerifyHint(true)
         } else {
-          showError(typeof error === 'string' ? error : 'Login failed')
+          const msg = typeof error === 'string' ? error : 'Login failed'
+          setLoginError(msg)
+          showError(msg)
         }
       } else {
         showSuccess('Login successful! Syncing your cart...')
@@ -71,34 +93,46 @@ export default function LoginPage() {
         router.push(returnUrl)
       }
     } catch {
-      showError('An unexpected error occurred')
+      const msg = 'An unexpected error occurred'
+      setLoginError(msg)
+      showError(msg)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen tech-page-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-vintage-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 animate-in fade-in duration-500">
-        <div className="paper-surface p-8 rounded-xl">
+        <div className="bg-white p-8 rounded-xl shadow-xl border border-vintage-primary/10">
           <div className="text-center mb-10">
             <Link href="/" className="inline-block group transition-transform hover:scale-105 duration-300">
               <div className="w-20 h-20 brand-icon-tile rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-black/15 group-hover:shadow-black/25 transition-shadow">
                 <User className="w-10 h-10 text-[rgb(var(--color-on-dark-surface))]" />
               </div>
             </Link>
-            <h1 className="text-3xl font-bold font-playfair paper-title tracking-tight">Welcome Back</h1>
-            <p className="paper-muted mt-3 text-lg">Sign in to your account</p>
+            <h1 className="text-3xl font-bold font-playfair text-text tracking-tight">Welcome Back</h1>
+            <p className="text-text-muted mt-3 text-lg">Sign in to your account</p>
           </div>
+
+          {loginError ? (
+            <div
+              role="alert"
+              data-cy="login-submit-error"
+              className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+            >
+              {loginError}
+            </div>
+          ) : null}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="username" className="block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted">
-                Username or email
+              <label htmlFor="username" className="form-label text-sm font-semibold uppercase tracking-wider text-text-light">
+                Username
               </label>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none transition-colors group-focus-within:text-vintage-primary z-20">
-                  <User className="w-5 h-5 paper-muted" />
+                  <User className="w-5 h-5 text-text-muted" />
                 </div>
                 <input
                   id="username"
@@ -107,7 +141,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-md hover:border-vintage-primary/50 transition-all focus:bg-white focus:ring-4 focus:ring-vintage-primary/10 focus:outline-none focus:border-transparent relative z-10"
-                  placeholder="Username or email"
+                  placeholder="Enter your username"
                   required
                 />
               </div>
@@ -115,16 +149,16 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted">
+                <label htmlFor="password" className="form-label text-sm font-semibold uppercase tracking-wider text-text-light">
                   Password
                 </label>
-                <Link href="#" className="text-xs font-semibold text-vintage-primary hover:text-vintage-primary-dark transition-colors">
+                <Link href="/forgot-password" className="text-xs font-semibold text-vintage-primary hover:text-vintage-primary-dark transition-colors">
                   Forgot password?
                 </Link>
               </div>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none transition-colors group-focus-within:text-vintage-primary z-20">
-                  <Lock className="w-5 h-5 paper-muted" />
+                  <Lock className="w-5 h-5 text-text-muted" />
                 </div>
                 <input
                   id="password"
@@ -146,7 +180,7 @@ export default function LoginPage() {
                 type="checkbox"
                 className="h-4 w-4 text-vintage-primary focus:ring-vintage-primary border-gray-300 rounded cursor-pointer"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm paper-muted cursor-pointer select-none">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-text-light cursor-pointer select-none">
                 Remember me
               </label>
             </div>
@@ -223,7 +257,7 @@ export default function LoginPage() {
           ) : null}
 
           <div className="mt-10 pt-8 border-t border-gray-100 text-center">
-            <p className="paper-muted">
+            <p className="text-text-muted">
               Don&apos;t have an account?{' '}
               <Link href="/register" className="text-vintage-primary hover:text-vintage-primary-dark font-bold transition-colors underline underline-offset-4">
                 Create one
