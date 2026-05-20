@@ -8,8 +8,13 @@ import { useCart } from '@/contexts/CartContext'
 import { useToast } from '@/contexts/ToastContext'
 import { Mail, Lock, User, ArrowRight, Phone } from 'lucide-react'
 
+function countDigits(value: string) {
+  return value.replace(/\D/g, '').length
+}
+
 export default function RegisterPage() {
-  const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -22,7 +27,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (password !== confirmPassword) {
       showError('Passwords do not match')
       return
@@ -33,16 +38,38 @@ export default function RegisterPage() {
       return
     }
 
-    setIsLoading(true)
-
-    if (!phone.trim()) {
-      showError('Cellphone is required for delivery')
+    const fn = firstName.trim()
+    const ln = lastName.trim()
+    if (!fn) {
+      showError('Please enter your first name')
+      return
+    }
+    if (!ln) {
+      showError('Please enter your last name')
       return
     }
 
+    const phoneTrim = phone.trim()
+    if (!phoneTrim) {
+      showError('Please enter your cellphone number')
+      return
+    }
+    if (countDigits(phoneTrim) < 8) {
+      showError('Cellphone must include at least 8 digits')
+      return
+    }
+
+    setIsLoading(true)
+
     try {
-      const { error, verificationRequired, email: verificationEmail } = await signUp(email, password, fullName, phone.trim())
-      
+      const { error, verificationRequired, email: verificationEmail } = await signUp(
+        email,
+        password,
+        fn,
+        ln,
+        phoneTrim,
+      )
+
       if (error) {
         showError(error)
       } else if (verificationRequired && verificationEmail) {
@@ -64,6 +91,8 @@ export default function RegisterPage() {
     }
   }
 
+  const labelCls = 'block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted'
+
   return (
     <div className="min-h-screen tech-page-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 animate-in fade-in duration-500">
@@ -80,28 +109,51 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label htmlFor="fullName" className="block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted">
-                Full Name
+              <label htmlFor="register-first-name" className={labelCls}>
+                First name *
               </label>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none transition-colors group-focus-within:text-vintage-primary z-20">
                   <User className="w-5 h-5 paper-muted" />
                 </div>
                 <input
-                  id="fullName"
-                  data-cy="register-full-name"
+                  id="register-first-name"
+                  data-cy="register-first-name"
                   type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-md hover:border-vintage-primary/50 transition-all focus:bg-white focus:ring-4 focus:ring-vintage-primary/10 focus:outline-none focus:border-transparent relative z-10"
-                  placeholder="John Doe"
+                  placeholder="John"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="phone" className="block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted">
+              <label htmlFor="register-last-name" className={labelCls}>
+                Last name *
+              </label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none transition-colors group-focus-within:text-vintage-primary z-20">
+                  <User className="w-5 h-5 paper-muted" />
+                </div>
+                <input
+                  id="register-last-name"
+                  data-cy="register-last-name"
+                  type="text"
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-md hover:border-vintage-primary/50 transition-all focus:bg-white focus:ring-4 focus:ring-vintage-primary/10 focus:outline-none focus:border-transparent relative z-10"
+                  placeholder="Doe"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="phone" className={labelCls}>
                 Cellphone *
               </label>
               <div className="relative group">
@@ -112,6 +164,7 @@ export default function RegisterPage() {
                   id="phone"
                   data-cy="register-phone"
                   type="tel"
+                  autoComplete="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-md hover:border-vintage-primary/50 transition-all focus:bg-white focus:ring-4 focus:ring-vintage-primary/10 focus:outline-none focus:border-transparent relative z-10"
@@ -121,12 +174,12 @@ export default function RegisterPage() {
               </div>
               <p className="text-xs paper-muted flex items-center gap-1 ml-1">
                 <span className="w-1 h-1 bg-text-muted rounded-full"></span>
-                Required for delivery
+                Required for delivery (at least 8 digits)
               </p>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="email" className="block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted">
+              <label htmlFor="email" className={labelCls}>
                 Email
               </label>
               <div className="relative group">
@@ -147,7 +200,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted">
+              <label htmlFor="password" className={labelCls}>
                 Password
               </label>
               <div className="relative group">
@@ -173,7 +226,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block mb-1 text-sm font-semibold uppercase tracking-wider paper-muted">
+              <label htmlFor="confirmPassword" className={labelCls}>
                 Confirm Password
               </label>
               <div className="relative group">

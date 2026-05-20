@@ -535,6 +535,8 @@ export const authApi = {
     company_name?: string
     company_email?: string
     full_name?: string
+    first_name?: string
+    last_name?: string
     phone?: string
     password_confirm?: string
     role?: string
@@ -562,7 +564,13 @@ export const authApi = {
         requestData.last_name = nameParts.slice(1).join(' ') || ''
       }
     } else {
-      if (data.full_name) {
+      if (
+        (data.first_name != null && data.first_name !== '') ||
+        (data.last_name != null && data.last_name !== '')
+      ) {
+        requestData.first_name = (data.first_name || '').trim()
+        requestData.last_name = (data.last_name || '').trim()
+      } else if (data.full_name) {
         const nameParts = data.full_name.trim().split(/\s+/)
         requestData.first_name = nameParts[0] || ''
         requestData.last_name = nameParts.slice(1).join(' ') || ''
