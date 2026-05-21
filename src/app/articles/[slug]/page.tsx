@@ -5,6 +5,7 @@ import { Article } from '@/lib/types'
 import { Calendar, User, ArrowLeft, Clock } from 'lucide-react'
 import { getCompany } from '@/lib/company'
 import { resolveLocale } from '@/lib/locale'
+import { getArticleHeroImageUrl, IMAGE_DIM } from '@/lib/image-utils'
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>
@@ -31,11 +32,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   return (
-    <div className="min-h-screen tech-page-bg">
+    <div className="min-h-screen bg-vintage-background">
       {/* Breadcrumb */}
-      <div className="paper-section border-b border-[rgb(var(--color-paper-border))]">
+      <div className="bg-white border-b border-gray-200">
         <div className="container-wide py-4">
-          <Link href="/articles" className="flex items-center paper-muted hover:text-primary transition-colors">
+          <Link href="/articles" className="flex items-center text-text-muted hover:text-vintage-primary transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Articles
           </Link>
@@ -44,11 +45,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
       {/* Article Header */}
       <article>
-        {article.featured_media?.file_url && (
+        {(article.featured_media?.file_url || article.social_image?.file_url) && (
           <div className="w-full h-64 md:h-96 relative">
             <img
-              src={article.featured_media.file_url}
+              src={getArticleHeroImageUrl(article)}
               alt={article.title}
+              width={IMAGE_DIM.articleCard.width}
+              height={IMAGE_DIM.articleCard.height}
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -120,13 +125,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </article>
 
       {/* CTA */}
-      <section className="py-12 paper-section border-t border-[rgb(var(--color-paper-border))]">
+      <section className="py-12 bg-white border-t border-gray-200">
         <div className="container-narrow text-center">
-          <h2 className="text-2xl font-bold font-playfair paper-title mb-4">
+          <h2 className="text-2xl font-bold font-playfair text-text mb-4">
             Discover Our Collection
           </h2>
-          <p className="paper-muted mb-6">
-            Find ESP32 boards, sensors, gateways, and project kits in our shop.
+          <p className="text-text-muted mb-6">
+            Find unique vintage treasures and modern essentials in our shop.
           </p>
           <Link href="/products" className="btn btn-primary">
             Shop Now

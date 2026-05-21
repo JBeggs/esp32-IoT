@@ -5,9 +5,9 @@ import {
   getArticleDisplaySettings,
 } from '@/lib/article-display-settings'
 import { Article } from '@/lib/types'
-import { getArticleCardImageUrl } from '@/lib/image-utils'
+import { getArticleCardImageUrl, IMAGE_DIM } from '@/lib/image-utils'
 import { resolveArticleAuthorLabel } from '@/lib/article-author-options'
-import { Calendar, User, ArrowRight, Search, Cpu } from 'lucide-react'
+import { Calendar, User, ArrowRight, Search, Newspaper } from 'lucide-react'
 import PageHero from '@/components/hero/PageHero'
 
 interface ArticlesPageProps {
@@ -32,7 +32,7 @@ async function getCategories(): Promise<{ id: string; name: string }[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://3pillars.pythonanywhere.com/api'
     const res = await fetch(`${baseUrl}/news/categories/`, {
-      headers: { 'X-Company-Slug': 'esp32-iot', 'Content-Type': 'application/json' },
+      headers: { 'X-Company-Slug': 'riverside-herald', 'Content-Type': 'application/json' },
       cache: 'no-store',
     })
     if (!res.ok) return []
@@ -70,38 +70,38 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
   )
 
   return (
-    <div className="min-h-screen tech-page-bg">
+    <div className="min-h-screen bg-vintage-background">
       <PageHero pageSlug="articles" fallback={null} />
       {/* Page Header */}
-      <section className="py-12 brand-gradient-band">
+      <section className="py-12 bg-vintage-primary text-white">
         <div className="container-wide">
-          <h1 className="text-3xl md:text-4xl font-bold font-playfair mb-2 text-on-dark">
-            Build Notes & Guides
+          <h1 className="text-3xl md:text-4xl font-bold font-playfair mb-2">
+            Stories & Inspiration
           </h1>
-          <p className="text-lg text-on-dark-muted">
-            MicroPython tips, wiring guides, sensor notes, and connected-device inspiration.
+          <p className="text-lg text-green-100">
+            Tips, guides, and behind-the-scenes from the world of vintage and modern treasures
           </p>
         </div>
       </section>
 
       {/* Category Filter & Search */}
-      <section className="paper-section border-b border-[rgb(var(--color-paper-border))] py-6">
+      <section className="border-b border-vintage-primary/10 py-6 bg-white/50">
         <div className="container-wide">
           {/* Search */}
           <form action="/articles" method="GET" className="mb-4">
             {category && <input type="hidden" name="category" value={category} />}
             <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 paper-muted" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
               <input
                 type="search"
                 name="search"
                 defaultValue={search}
                 placeholder="Search articles..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[rgb(var(--color-paper-border))] bg-white text-slate-950 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-vintage-primary/20 bg-white text-text focus:outline-none focus:ring-2 focus:ring-vintage-primary/30 focus:border-vintage-primary"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm font-medium text-primary hover:text-primary-hover"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm font-medium text-vintage-primary hover:text-vintage-primary/80"
               >
                 Search
               </button>
@@ -114,8 +114,8 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
               href="/articles"
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 !category
-                  ? 'bg-primary text-[rgb(var(--color-primary-fg))]'
-                  : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                  ? 'bg-vintage-primary text-white'
+                  : 'bg-vintage-primary/10 text-vintage-primary hover:bg-vintage-primary/20'
               }`}
             >
               All
@@ -126,8 +126,8 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
                 href={buildArticlesUrl({ category: cat.id, search: search || undefined })}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   category === cat.id
-                    ? 'bg-primary text-[rgb(var(--color-primary-fg))]'
-                    : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                    ? 'bg-vintage-primary text-white'
+                    : 'bg-vintage-primary/10 text-vintage-primary hover:bg-vintage-primary/20'
                 }`}
               >
                 {cat.name}
@@ -147,13 +147,17 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
                   <img
                     src={getArticleCardImageUrl(article)}
                     alt={article.title}
+                    width={IMAGE_DIM.articleCard.width}
+                    height={IMAGE_DIM.articleCard.height}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="p-5">
                     {article.category && (
                       <span className="tag tag-vintage mb-2">{article.category.name}</span>
                     )}
-                    <h2 className="text-lg font-semibold text-text group-hover:text-primary transition-colors line-clamp-2">
+                    <h2 className="text-lg font-semibold text-text group-hover:text-vintage-primary transition-colors line-clamp-2">
                       {article.title}
                     </h2>
                     {article.excerpt && (
@@ -173,7 +177,7 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
                         </span>
                       </div>
                     </div>
-                    <div className="mt-4 flex items-center text-primary font-medium text-sm">
+                    <div className="mt-4 flex items-center text-vintage-primary font-medium text-sm">
                       Read More <ArrowRight className="w-4 h-4 ml-1" />
                     </div>
                   </div>
@@ -182,8 +186,8 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                <Cpu className="w-8 h-8 text-primary" />
+              <div className="w-16 h-16 mx-auto mb-4 bg-vintage-primary/10 rounded-full flex items-center justify-center">
+                <Newspaper className="w-8 h-8 text-vintage-primary" aria-hidden />
               </div>
               <h2 className="text-xl font-semibold text-text mb-2">
                 {search || category ? 'No articles match your filters' : 'No articles yet'}
