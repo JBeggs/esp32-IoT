@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Clock, Sparkles, Package, TimerReset, Truck, Shield } from 'lucide-react'
 import { formatCartCountdown, getCartItemImages, getCartItemKey, getItemMinQuantity, getItemStockQuantity, groupCartItems, normalizeCartResponse, OTHER_GROUP } from '@/lib/cart-utils'
 import { isBundleProduct } from '@/lib/product-utils'
-import { getProductBundleImages } from '@/lib/image-utils'
+import { getProductCardImages } from '@/lib/image-utils'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 const DELIVERY_GROUP_STORAGE_KEY = 'deliveryGroupMapV1'
@@ -142,9 +142,9 @@ export default function CartPage() {
               if (!productId) return item
               const productResponse = await ecommerceApi.products.get(String(productId)) as any
               const product = productResponse?.data ?? productResponse
-              const images = getProductBundleImages(product)
+              const images = getProductCardImages(product)
               if (images.length > 0) {
-                return { ...item, bundle_images: images, product: { ...(item.product || {}), image: product?.image || item.product?.image } as any }
+                return { ...item, bundle_images: images, product: { ...(item.product || {}), ...product, image: product?.image || item.product?.image } as any }
               }
             } catch {
               // Ignore enrichment failures and keep original item.
@@ -321,7 +321,7 @@ export default function CartPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen tech-page-bg py-12">
+      <div className="min-h-screen bg-vintage-background py-12">
         <div className="container-wide">
           <div className="animate-pulse">
             <div className="mb-8 h-8 w-48 rounded bg-gray-200" />
@@ -337,7 +337,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen tech-page-bg py-12" data-cy="cart-container">
+    <div className="min-h-screen bg-vintage-background py-12" data-cy="cart-container">
       <div className="container-wide">
         <h1 className="mb-8 text-3xl font-bold font-playfair text-text">Shopping Cart</h1>
 
@@ -481,12 +481,12 @@ export default function CartPage() {
 
                           <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div className="flex items-center gap-3 sm:gap-0">
-                              <span className="sm:hidden text-xs font-medium uppercase tracking-wide text-text-muted w-16">Quantity</span>
+                              <span className="sm:hidden text-xs font-medium uppercase tracking-wide text-[#6b5344] w-16">Quantity</span>
                               <div className="quantity-control">
                               <button
                                 onClick={() => updateQuantity(productId, item.quantity - 1)}
                                 disabled={updating === productId || item.quantity <= minQty}
-                                className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-text hover:bg-primary hover:text-[rgb(var(--color-primary-fg))] disabled:opacity-50"
+                                className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-text hover:bg-[#6b5438] hover:text-white disabled:opacity-50"
                               >
                                 <Minus className="h-4 w-4" />
                               </button>
@@ -495,7 +495,7 @@ export default function CartPage() {
                                 <button
                                   onClick={() => updateQuantity(productId, item.quantity + 1)}
                                   disabled={updating === productId || atStockLimit}
-                                  className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-text hover:bg-primary hover:text-[rgb(var(--color-primary-fg))] disabled:opacity-50"
+                                  className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-text hover:bg-[#6b5438] hover:text-white disabled:opacity-50"
                                 >
                                   <Plus className="h-4 w-4" />
                                 </button>
@@ -504,7 +504,7 @@ export default function CartPage() {
                             </div>
 
                             <div className="flex items-center gap-3 sm:gap-0 sm:text-right">
-                              <span className="sm:hidden text-xs font-medium uppercase tracking-wide text-text-muted">Item Total</span>
+                              <span className="sm:hidden text-xs font-medium uppercase tracking-wide text-[#6b5344]">Item Total</span>
                               <div>
                               <p className="hidden sm:block item-total-label">Item Total</p>
                               <p className="font-bold text-vintage-primary">

@@ -9,7 +9,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { Cart, CartItem, SupplierDeliveryBreakdownItem, type GumtreeFulfillmentMethod } from '@/lib/types'
 import { ArrowLeft, CreditCard, Truck, Shield, Lock, MapPin, Package } from 'lucide-react'
 import { getCartItemImages, isCourierGuyCartItem, normalizeCartResponse } from '@/lib/cart-utils'
-import { getProductBundleImages } from '@/lib/image-utils'
+import { getProductCardImages } from '@/lib/image-utils'
 import { PudoLocationSelector, type PudoLocation } from '@/components/checkout/PudoLocationSelector'
 
 type DeliveryMethod = 'standard' | 'express' | 'pudo'
@@ -106,7 +106,7 @@ export default function CheckoutPage() {
               if (!productId) return item
               const productResponse = await ecommerceApi.products.get(String(productId)) as { data?: unknown }
               const product = productResponse?.data ?? productResponse
-              const images = getProductBundleImages(product as Parameters<typeof getProductBundleImages>[0])
+              const images = getProductCardImages(product as Parameters<typeof getProductCardImages>[0])
               if (images.length > 0) {
                 return { ...item, bundle_images: images }
               }
@@ -498,7 +498,7 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen tech-page-bg py-12">
+      <div className="min-h-screen bg-vintage-background py-12">
         <div className="container-wide">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-8" />
@@ -513,7 +513,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen tech-page-bg py-12 overflow-x-hidden" data-cy="checkout-content">
+    <div className="min-h-screen bg-vintage-background py-12 overflow-x-hidden" data-cy="checkout-content">
       <div className="container-wide min-w-0">
         {/* Back Link */}
         <Link href="/cart" className="flex items-center text-text-muted hover:text-vintage-primary transition-colors mb-8">
